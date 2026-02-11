@@ -43,11 +43,15 @@ namespace SistemaGestionBibliotecaUniversitaria
         {
             try
             {
+                // Restaurar color
+                txtNombre.BackColor = Color.White;
+
                 // Validar campo obligatorio
                 if (string.IsNullOrWhiteSpace(txtNombre.Text))
                 {
                     MessageBox.Show("El nombre es obligatorio", "Error de Validación",
                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtNombre.BackColor = Color.LightPink;
                     txtNombre.Focus();
                     return;
                 }
@@ -69,6 +73,14 @@ namespace SistemaGestionBibliotecaUniversitaria
 
                 LimpiarCampos();
                 CargarUsuarios();
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show($"Error de validación: {ex.Message}", "Error de Validación",
+                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtNombre.BackColor = Color.LightPink;
+                txtNombre.Focus();
+                return;
             }
             catch (Exception ex)
             {

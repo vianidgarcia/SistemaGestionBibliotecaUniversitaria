@@ -14,6 +14,8 @@ namespace SistemaGestionBibliotecaUniversitaria
             gestor = gestorBiblioteca;
         }
 
+        private bool isUpdating = false;
+
         // Agregar variable de control al inicio de la clase
         private bool isInitializing = false;
 
@@ -60,6 +62,10 @@ namespace SistemaGestionBibliotecaUniversitaria
                     txtTitulo.Focus();
                     return;
                 }
+                else
+                {
+                    txtTitulo.BackColor = Color.White;
+                }
 
                 if (!int.TryParse(txtCantidad.Text, out int cantidad) || cantidad <= 0)
                 {
@@ -67,6 +73,10 @@ namespace SistemaGestionBibliotecaUniversitaria
                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtCantidad.Focus();
                     return;
+                }
+                else
+                {
+                    txtCantidad.BackColor = Color.White;
                 }
 
                 string tipoSeleccionado = cmbTipoRecurso.SelectedItem.ToString();
@@ -83,9 +93,10 @@ namespace SistemaGestionBibliotecaUniversitaria
                         RegistrarNovela(cantidad);
                         break;
                 }
-
                 LimpiarCampos();
+                isUpdating = true;
                 CargarRecursos();
+                isUpdating = false;
             }
             catch (Exception ex)
             {
@@ -112,7 +123,8 @@ namespace SistemaGestionBibliotecaUniversitaria
                 return;
             }
 
-            int añoMaximoPermitido = DateTime.Now.Year + 10; 
+            // Validación de rango de año
+            int añoMaximoPermitido = DateTime.Now.Year + 10;
             if (año < 1000 || año > añoMaximoPermitido)
             {
                 MessageBox.Show($"El año debe estar entre 1000 y {añoMaximoPermitido}", "Error de Validación",
@@ -121,18 +133,53 @@ namespace SistemaGestionBibliotecaUniversitaria
                 return;
             }
 
-            gestor.RegistrarLibro(txtTitulo.Text, txtAutor.Text, año, cantidad);
-            MessageBox.Show("Libro registrado exitosamente", "Éxito",
-                          MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                gestor.RegistrarLibro(txtTitulo.Text, txtAutor.Text, año, cantidad);
+                MessageBox.Show("Libro registrado exitosamente", "Éxito",
+                              MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show($"Error de validación: {ex.Message}", "Error de Validación",
+                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCantidad.Focus();
+                return;
+            }
+        }
+
+        protected override void OnActivated(EventArgs e)
+        {
+            base.OnActivated(e);
+
+            if (!isUpdating)
+            {
+                CargarRecursos();
+            }
         }
 
         private void RegistrarRevista(int cantidad)
         {
-            string edicion = txtEdicion.Text;
-            gestor.RegistrarRevista(txtTitulo.Text, edicion, cantidad);
-            MessageBox.Show("Revista registrada exitosamente", "Éxito",
-                          MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // VALIDACIÓN DE EDICIÓN (NUEVO)
+            string edicion = string.IsNullOrWhiteSpace(txtEdicion.Text)
+                ? "(Sin edición especificada)"
+                : txtEdicion.Text.Trim();
+
+            try
+            {
+                gestor.RegistrarRevista(txtTitulo.Text, edicion, cantidad);
+                MessageBox.Show("Revista registrada exitosamente", "Éxito",
+                              MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show($"Error de validación: {ex.Message}", "Error de Validación",
+                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCantidad.Focus();
+                return;
+            }
         }
+
 
         private void RegistrarNovela(int cantidad)
         {
@@ -205,6 +252,10 @@ namespace SistemaGestionBibliotecaUniversitaria
         private void btnCerrar_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+        private void btnActualizarLista_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

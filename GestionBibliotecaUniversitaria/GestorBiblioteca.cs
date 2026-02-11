@@ -35,6 +35,18 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// </summary>
         public void RegistrarLibro(string titulo, string autor, int año, int cantidad)
         {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("El título es obligatorio");
+
+            if (string.IsNullOrWhiteSpace(autor))
+                throw new ArgumentException("El autor es obligatorio");
+
+            if (cantidad <= 0)
+                throw new ArgumentException("La cantidad debe ser mayor a 0");
+
+            if (año < 1000 || año > DateTime.Now.Year + 10)
+                throw new ArgumentException($"El año debe estar entre 1000 y {DateTime.Now.Year + 10}");
+
             // Buscar libro existente por título, autor y año (ignorando mayúsculas y espacios)
             var existente = Recursos
                 .OfType<Libro>()
@@ -63,6 +75,12 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// </summary>
         public void RegistrarRevista(string titulo, string edicion, int cantidad)
         {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("El título es obligatorio");
+
+            if (cantidad <= 0)
+                throw new ArgumentException("La cantidad debe ser mayor a 0");
+
             // Buscar revista existente por título y edición (ignorando mayúsculas y espacios)
             var existente = Recursos
                 .OfType<Revista>()
@@ -89,6 +107,18 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// </summary>
         public void RegistrarNovela(string titulo, string autor, int año, int cantidad)
         {
+            if (string.IsNullOrWhiteSpace(titulo))
+                throw new ArgumentException("El título es obligatorio");
+
+            if (string.IsNullOrWhiteSpace(autor))
+                throw new ArgumentException("El autor es obligatorio");
+
+            if (cantidad <= 0)
+                throw new ArgumentException("La cantidad debe ser mayor a 0");
+
+            if (año < 1000 || año > DateTime.Now.Year + 10)
+                throw new ArgumentException($"El año debe estar entre 1000 y {DateTime.Now.Year + 10}");
+
             var existente = Recursos
                 .OfType<Novela>()
                 .FirstOrDefault(n =>
@@ -176,6 +206,10 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// </summary>
         public void RegistrarEstudiante(string nombre)
         {
+            if (string.IsNullOrWhiteSpace(nombre))
+                throw new ArgumentException("El nombre es obligatorio");
+
+
             string id = $"E{ContadorEstudiantes:D3}";
             Estudiante nuevoEstudiante = new Estudiante(id, nombre);
             Usuarios.Add(nuevoEstudiante);
@@ -188,6 +222,9 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// </summary>
         public void RegistrarProfesor(string nombre)
         {
+            if (string.IsNullOrWhiteSpace(nombre))
+                throw new ArgumentException("El nombre es obligatorio");
+
             string id = $"P{ContadorProfesores:D3}";
             Profesor nuevoProfesor = new Profesor(id, nombre);
             Usuarios.Add(nuevoProfesor);
