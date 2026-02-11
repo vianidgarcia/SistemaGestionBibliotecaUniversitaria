@@ -15,12 +15,17 @@ namespace SistemaGestionBibliotecaUniversitaria
             gestor = gestorBiblioteca;
         }
 
+        private Color defaultComboBackColor = Color.White;
+
         private void FormGestionPrestamos_Load(object sender, EventArgs e)
         {
             // Cargar datos iniciales
             CargarRecursosDisponibles();
             CargarUsuarios();
             CargarPrestamosActivos();
+
+            // Guardar color por defecto
+            defaultComboBackColor = cmbRecursos.BackColor;
         }
 
         #region Realizar Préstamo
@@ -29,11 +34,16 @@ namespace SistemaGestionBibliotecaUniversitaria
         {
             try
             {
+                // Restaurar colores por defecto
+                cmbRecursos.BackColor = defaultComboBackColor;
+                cmbUsuarios.BackColor = defaultComboBackColor;
+
                 // Validar que se haya seleccionado un recurso
                 if (cmbRecursos.SelectedIndex == -1)
                 {
                     MessageBox.Show("Debe seleccionar un recurso", "Error de Validación",
                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmbRecursos.BackColor = Color.LightPink;
                     cmbRecursos.Focus();
                     return;
                 }
@@ -43,8 +53,25 @@ namespace SistemaGestionBibliotecaUniversitaria
                 {
                     MessageBox.Show("Debe seleccionar un usuario", "Error de Validación",
                                   MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    cmbUsuarios.BackColor = Color.LightPink;
                     cmbUsuarios.Focus();
                     return;
+                }
+
+                // Validar que el usuario no haya alcanzado su límite
+                var usuario = gestor.BuscarUsuarioPorIndice(cmbUsuarios.SelectedIndex);
+                if (usuario != null)
+                {
+                    int prestamosActivos = gestor.ContarPrestamosActivosUsuario(usuario.GetId());
+                    if (prestamosActivos >= usuario.LimiteRecursos)
+                    {
+                        MessageBox.Show($"El usuario ha alcanzado su límite de {usuario.LimiteRecursos} recursos simultáneos",
+                                      "Límite Alcanzado",
+                                      MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        cmbUsuarios.BackColor = Color.LightPink;
+                        cmbUsuarios.Focus();
+                        return;
+                    }
                 }
 
                 // Realizar préstamo
@@ -219,6 +246,37 @@ namespace SistemaGestionBibliotecaUniversitaria
                 }
 
                 lblTotalRecursosDisponibles.Text = $"Total: {recursos.Count} recursos disponibles";
+
+                // Mostrar advertencia si no hay recursos
+                if (recursos.Count == 0)
+                {
+                    cmbRecursos.Enabled = false;
+                    btnRealizarPrestamo.Enabled = false;
+
+                    // Crear label de advertencia si no existe
+                    if (!Controls.ContainsKey("lblAdvertenciaRecursos"))
+                    {
+                        Label lblAdvertencia = new Label();
+                        lblAdvertencia.Name = "lblAdvertenciaRecursos";
+                        lblAdvertencia.Text = "⚠️ No hay recursos disponibles actualmente. Registre nuevos recursos o espere a que se devuelvan préstamos activos.";
+                        lblAdvertencia.ForeColor = Color.Orange;
+                        lblAdvertencia.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+                        lblAdvertencia.Location = new Point(50, 150);
+                        lblAdvertencia.Size = new Size(650, 40);
+                        lblAdvertencia.TextAlign = ContentAlignment.MiddleCenter;
+                        groupBoxNuevoPrestamo.Controls.Add(lblAdvertencia);
+                    }
+                }
+                else
+                {
+                    cmbRecursos.Enabled = true;
+
+                    // Remover advertencia si existe
+                    if (Controls.ContainsKey("lblAdvertenciaRecursos"))
+                    {
+                        groupBoxNuevoPrestamo.Controls.RemoveByKey("lblAdvertenciaRecursos");
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -275,9 +333,14 @@ namespace SistemaGestionBibliotecaUniversitaria
 
         private void cmbUsuarios_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // Restaurar color por defecto
+            cmbUsuarios.BackColor = defaultComboBackColor;
+
             if (cmbUsuarios.SelectedIndex == -1)
             {
                 lblInfoUsuario.Text = "";
+                btnRealizarPrestamo.Enabled = false;
+                btnRealizarPrestamo.Text = "✓ Realizar Préstamo";
                 return;
             }
 
@@ -293,22 +356,30 @@ namespace SistemaGestionBibliotecaUniversitaria
                     if (prestamosActivos >= usuario.LimiteRecursos)
                     {
                         lblInfoUsuario.ForeColor = Color.Red;
+                        btnRealizarPrestamo.Enabled = false;
+                        btnRealizarPrestamo.Text = "❌ Límite Alcanzado";
                     }
                     else if (prestamosActivos >= usuario.LimiteRecursos - 1)
                     {
                         lblInfoUsuario.ForeColor = Color.Orange;
+                        btnRealizarPrestamo.Enabled = true;
+                        btnRealizarPrestamo.Text = "✓ Realizar Préstamo";
                     }
                     else
                     {
                         lblInfoUsuario.ForeColor = Color.Green;
+                        btnRealizarPrestamo.Enabled = true;
+                        btnRealizarPrestamo.Text = "✓ Realizar Préstamo";
                     }
                 }
             }
             catch (Exception ex)
             {
                 lblInfoUsuario.Text = $"Error: {ex.Message}";
+                btnRealizarPrestamo.Enabled = false;
             }
         }
+
 
         #endregion
 

@@ -112,6 +112,15 @@ namespace SistemaGestionBibliotecaUniversitaria
                 return;
             }
 
+            int añoMaximoPermitido = DateTime.Now.Year + 10; 
+            if (año < 1000 || año > añoMaximoPermitido)
+            {
+                MessageBox.Show($"El año debe estar entre 1000 y {añoMaximoPermitido}", "Error de Validación",
+                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAño.Focus();
+                return;
+            }
+
             gestor.RegistrarLibro(txtTitulo.Text, txtAutor.Text, año, cantidad);
             MessageBox.Show("Libro registrado exitosamente", "Éxito",
                           MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -138,6 +147,16 @@ namespace SistemaGestionBibliotecaUniversitaria
             if (!int.TryParse(txtAño.Text, out int año))
             {
                 MessageBox.Show("El año debe ser un número válido", "Error de Validación",
+                              MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAño.Focus();
+                return;
+            }
+
+            // VALIDACIÓN DE RANGO DE AÑO (NUEVO)
+            int añoMaximoPermitido = DateTime.Now.Year + 10;
+            if (año < 1000 || año > añoMaximoPermitido)
+            {
+                MessageBox.Show($"El año debe estar entre 1000 y {añoMaximoPermitido}", "Error de Validación",
                               MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtAño.Focus();
                 return;
