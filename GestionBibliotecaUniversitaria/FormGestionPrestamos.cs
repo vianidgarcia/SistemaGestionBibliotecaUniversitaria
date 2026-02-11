@@ -76,7 +76,7 @@ namespace SistemaGestionBibliotecaUniversitaria
 
         #endregion
 
-        #region Renovar Préstamo
+        #region Renovar Préstamo - CORREGIDO
 
         private void btnRenovar_Click(object sender, EventArgs e)
         {
@@ -91,7 +91,8 @@ namespace SistemaGestionBibliotecaUniversitaria
 
                 int indicePrestamo = dgvPrestamosActivos.SelectedRows[0].Index;
 
-                bool exito = gestor.RenovarPrestamo(indicePrestamo);
+                // Usar el nuevo método que trabaja con índices de activos
+                bool exito = gestor.RenovarPrestamoPorIndiceActivo(indicePrestamo);
 
                 if (exito)
                 {
@@ -109,7 +110,7 @@ namespace SistemaGestionBibliotecaUniversitaria
 
         #endregion
 
-        #region Devolver Préstamo
+        #region Devolver Préstamo - CORREGIDO con visualización de multas
 
         private void btnDevolver_Click(object sender, EventArgs e)
         {
@@ -124,16 +125,70 @@ namespace SistemaGestionBibliotecaUniversitaria
 
                 int indicePrestamo = dgvPrestamosActivos.SelectedRows[0].Index;
 
+                // Obtener información del préstamo antes de devolver
+                var prestamo = gestor.ObtenerPrestamoActivoPorIndice(indicePrestamo);
+                if (prestamo == null)
+                {
+                    MessageBox.Show("Préstamo no encontrado", "Error",
+                                  MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Calcular multa potencial antes de la devolución
+                bool estaVencido = DateTime.Now > prestamo.GetFechaLimite();
+                int diasRetraso = estaVencido ? (DateTime.Now - prestamo.GetFechaLimite()).Days : 0;
+                double multaPotencial = diasRetraso * prestamo.GetUsuario().GetMultaPorDia();
+
+                // Construir mensaje de confirmación
+                string mensajeConfirmacion = "¿Está seguro de que desea registrar la devolución de este préstamo?\n\n";
+                mensajeConfirmacion += $"Recurso: {prestamo.GetRecurso().GetTitulo()}\n";
+                mensajeConfirmacion += $"Usuario: {prestamo.GetUsuario().GetNombre()}\n";
+                mensajeConfirmacion += $"Fecha límite: {prestamo.GetFechaLimite():dd/MM/yyyy}\n";
+
+                if (estaVencido)
+                {
+                    mensajeConfirmacion += $"\n⚠️ ATENCIÓN: PRÉSTAMO VENCIDO\n";
+                    mensajeConfirmacion += $"Días de retraso: {diasRetraso}\n";
+                    mensajeConfirmacion += $"Multa estimada: ${multaPotencial:F2}\n";
+                }
+                else
+                {
+                    mensajeConfirmacion += "\nPréstamo dentro del plazo ✓\n";
+                }
+
                 DialogResult resultado = MessageBox.Show(
-                    "¿Está seguro de que desea registrar la devolución de este préstamo?",
+                    mensajeConfirmacion,
                     "Confirmar Devolución",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question);
 
                 if (resultado == DialogResult.Yes)
                 {
-                    gestor.DevolverPrestamo(indicePrestamo);
-                    MessageBox.Show("Devolución registrada exitosamente", "Éxito",
+                    // Realizar devolución
+                    gestor.DevolverPrestamoPorIndiceActivo(indicePrestamo);
+
+                    // Construir mensaje de resultado
+                    string mensajeResultado = "Devolución registrada exitosamente.\n\n";
+
+                    // Obtener el préstamo actualizado (buscar por ID)
+                    var prestamosActivos = gestor.ObtenerPrestamosActivosResumidos();
+
+                    if (estaVencido && multaPotencial > 0)
+                    {
+                        mensajeResultado += $"✅ Se aplicó multa de ${multaPotencial:F2} por {diasRetraso} día(s) de retraso.\n";
+                    }
+                    else if (estaVencido)
+                    {
+                        mensajeResultado += "✅ Devolución registrada (con retraso pero sin multa).\n";
+                    }
+                    else
+                    {
+                        mensajeResultado += "✅ Devolución a tiempo. Sin multa.\n";
+                    }
+
+                    mensajeResultado += $"\nRecurso '{prestamo.GetRecurso().GetTitulo()}' disponible nuevamente.";
+
+                    MessageBox.Show(mensajeResultado, "Devolución Exitosa",
                                   MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     CargarRecursosDisponibles();
@@ -260,6 +315,11 @@ namespace SistemaGestionBibliotecaUniversitaria
         private void btnCerrar_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void dgvPrestamosActivos_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }

@@ -59,7 +59,6 @@ namespace SistemaGestionBibliotecaUniversitaria
             }
             return 0;
         }
-
         /// <summary>
         /// Renueva el préstamo extendiendo la fecha límite
         /// Retorna true si la renovación fue exitosa
@@ -69,21 +68,19 @@ namespace SistemaGestionBibliotecaUniversitaria
             // Validar que no esté vencido
             if (EstaVencido())
             {
-                Console.WriteLine("ERROR: No se puede renovar un préstamo vencido. Debe devolverse primero.");
-                return false;
+                // Se manejará el mensaje en la capa de presentación
+                throw new InvalidOperationException("No se puede renovar un préstamo vencido. Debe devolverse primero.");
             }
 
             // Validar que no haya sido renovado antes
             if (Renovado)
             {
-                Console.WriteLine("ERROR: Este préstamo ya fue renovado anteriormente.");
-                return false;
+                throw new InvalidOperationException("Este préstamo ya fue renovado anteriormente.");
             }
 
             // Renovar: reiniciar fecha límite desde hoy
             FechaLimite = DateTime.Now.AddDays(Usuario.DiasMaximoPrestamo);
             Renovado = true;
-            Console.WriteLine($"Préstamo renovado exitosamente. Nueva fecha límite: {FechaLimite:dd/MM/yyyy}");
             return true;
         }
 
@@ -96,15 +93,7 @@ namespace SistemaGestionBibliotecaUniversitaria
             double multa = CalcularMulta();
             Recurso.IncrementarDisponibilidad();
 
-            if (multa > 0)
-            {
-                Console.WriteLine($"MULTA: ${multa:F2} por {(FechaDevolucion.Value - FechaLimite).Days} día(s) de retraso.");
-            }
-            else
-            {
-                Console.WriteLine("Devolución a tiempo. Sin multa.");
-            }
-
+            // Nota: Los mensajes se manejan en la capa de presentación
             return multa;
         }
 

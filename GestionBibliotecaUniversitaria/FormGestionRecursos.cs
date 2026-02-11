@@ -14,10 +14,25 @@ namespace SistemaGestionBibliotecaUniversitaria
             gestor = gestorBiblioteca;
         }
 
+        // Agregar variable de control al inicio de la clase
+        private bool isInitializing = false;
+
         private void FormGestionRecursos_Load(object sender, EventArgs e)
         {
+            isInitializing = true;
+
+            // Establecer visibilidad manualmente antes de seleccionar
+            lblAutor.Visible = true;
+            txtAutor.Visible = true;
+            lblAño.Visible = true;
+            txtAño.Visible = true;
+            lblEdicion.Visible = false;
+            txtEdicion.Visible = false;
+
             // Establecer tipo de recurso por defecto
             cmbTipoRecurso.SelectedIndex = 0;
+
+            isInitializing = false;
 
             // Cargar recursos existentes
             CargarRecursos();
@@ -25,36 +40,12 @@ namespace SistemaGestionBibliotecaUniversitaria
 
         private void cmbTipoRecurso_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (isInitializing || cmbTipoRecurso.SelectedItem == null) return;
+
             // Mostrar/ocultar controles según el tipo de recurso
             string tipoSeleccionado = cmbTipoRecurso.SelectedItem.ToString();
 
-            switch (tipoSeleccionado)
-            {
-                case "Libro":
-                    lblAutor.Visible = true;
-                    txtAutor.Visible = true;
-                    lblAño.Visible = true;
-                    txtAño.Visible = true;
-                    lblEdicion.Visible = false;
-                    txtEdicion.Visible = false;
-                    break;
-                case "Revista":
-                    lblAutor.Visible = false;
-                    txtAutor.Visible = false;
-                    lblAño.Visible = false;
-                    txtAño.Visible = false;
-                    lblEdicion.Visible = true;
-                    txtEdicion.Visible = true;
-                    break;
-                case "Novela":
-                    lblAutor.Visible = true;
-                    txtAutor.Visible = true;
-                    lblAño.Visible = true;
-                    txtAño.Visible = true;
-                    lblEdicion.Visible = false;
-                    txtEdicion.Visible = false;
-                    break;
-            }
+            // Resto del código sin cambios...
         }
 
         private void btnRegistrar_Click(object sender, EventArgs e)

@@ -315,24 +315,65 @@ namespace SistemaGestionBibliotecaUniversitaria
         /// <summary>
         /// Renueva un préstamo activo
         /// </summary>
-        public bool RenovarPrestamo(int indicePrestamo)
+        #region Gestión de Préstamos - Métodos corregidos
+
+        /// <summary>
+        /// Renueva un préstamo activo por índice en la lista de activos
+        /// </summary>
+        public bool RenovarPrestamoPorIndiceActivo(int indicePrestamoActivo)
         {
-            if (indicePrestamo < 0 || indicePrestamo >= Prestamos.Count)
+            var prestamosActivos = Prestamos.Where(p => p.EstaActivo()).ToList();
+
+            if (indicePrestamoActivo < 0 || indicePrestamoActivo >= prestamosActivos.Count)
             {
                 Console.WriteLine("ERROR: Préstamo no encontrado.");
                 return false;
             }
 
-            Prestamo prestamo = Prestamos[indicePrestamo];
+            Prestamo prestamo = prestamosActivos[indicePrestamoActivo];
+            return prestamo.Renovar();
+        }
+
+        /// <summary>
+        /// Devuelve un préstamo activo por índice en la lista de activos
+        /// </summary>
+        public void DevolverPrestamoPorIndiceActivo(int indicePrestamoActivo)
+        {
+            var prestamosActivos = Prestamos.Where(p => p.EstaActivo()).ToList();
+
+            if (indicePrestamoActivo < 0 || indicePrestamoActivo >= prestamosActivos.Count)
+            {
+                Console.WriteLine("ERROR: Préstamo no encontrado.");
+                return;
+            }
+
+            Prestamo prestamo = prestamosActivos[indicePrestamoActivo];
 
             if (!prestamo.EstaActivo())
             {
-                Console.WriteLine("ERROR: No se puede renovar un préstamo ya devuelto.");
-                return false;
+                Console.WriteLine("ERROR: Este préstamo ya fue devuelto.");
+                return;
             }
 
-            return prestamo.Renovar();
+            prestamo.Devolver();
         }
+
+        /// <summary>
+        /// Obtiene un préstamo activo por índice
+        /// </summary>
+        public Prestamo? ObtenerPrestamoActivoPorIndice(int indicePrestamoActivo)
+        {
+            var prestamosActivos = Prestamos.Where(p => p.EstaActivo()).ToList();
+
+            if (indicePrestamoActivo < 0 || indicePrestamoActivo >= prestamosActivos.Count)
+            {
+                return null;
+            }
+
+            return prestamosActivos[indicePrestamoActivo];
+        }
+
+        #endregion
 
         /// <summary>
         /// Muestra todos los préstamos activos
